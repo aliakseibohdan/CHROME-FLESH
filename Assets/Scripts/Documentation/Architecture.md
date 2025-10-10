@@ -1,83 +1,107 @@
-FPS Project - Architecture Documentation
-🏗️ System Architecture Overview
-High-Level Architecture
-text
+# CHROME FLESH - Architecture Documentation
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Unity Engine  │◄──►│   Core Framework │◄──►│  Game Systems   │
-│                 │    │                  │    │                 │
-│ - Input System  │    │ - Service Locator│    │ - Gameplay      │
-│ - Scene Manager │    │ - Event Bus      │    │ - UI            │
-│ - Asset Loading │    │ - Configuration  │    │ - Audio         │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  Art Pipeline   │    │   Data Layer     │    │  Content        │
-│                 │    │                  │    │                 │
-│ - Validation    │    │ - ScriptableObjs │    │ - Scenes        │
-│ - Import        │    │ - Addressables   │    │ - Prefabs       │
-│ - Optimization  │    │ - Resources      │    │ - Assets        │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+## 🏗️ System Architecture Overview
 
-🎯 Core Principles
-1. Dependency Inversion
+### High-Level Architecture
 
-    High-level modules don't depend on low-level implementations
-
-    All dependencies flow through interfaces
-
-    Service Locator provides abstraction layer
-
-2. Event-Driven Communication
-
-    Systems communicate through events, not direct calls
-
-    Loose coupling between components
-
-    Easy to extend and modify behavior
-
-3. Data-Driven Design
-
-    Configuration through ScriptableObjects
-
-    Easy balancing and tuning without code changes
-
-    Designer-friendly workflow
-
-4. Separation of Concerns
-
-    Clear boundaries between systems
-
-    Single responsibility for each component
-
-    Testable, maintainable code
-
-🔧 Core Framework
-1. Boot Sequence
-
-Purpose: Initialize core systems in controlled order
-
-Flow:
-
+```mermaid
 graph TD
-    A[Unity Awake] --> B[Create Service Container]
-    B --> C[Register Core Services]
-    C --> D[Initialize ServiceLocator]
-    D --> E[Load First Scene]
-    E --> F[Game Ready]
+    A[Unity Engine] --> B[Core Framework]
+    B --> C[Game Systems]
+    A --> D[Art Pipeline]
+    B --> E[Data Layer]
+    C --> F[Content]
+    
+    subgraph Unity Engine
+        A1[Input System]
+        A2[Scene Manager]
+        A3[Asset Loading]
+    end
+    
+    subgraph Core Framework
+        B1[Service Locator]
+        B2[Event Bus]
+        B3[Configuration]
+    end
+    
+    subgraph Game Systems
+        C1[Gameplay]
+        C2[UI]
+        C3[Audio]
+    end
+    
+    subgraph Art Pipeline
+        D1[Validation]
+        D2[Import]
+        D3[Optimization]
+    end
+    
+    subgraph Data Layer
+        E1[ScriptableObjects]
+        E2[Addressables]
+        E3[Resources]
+    end
+    
+    subgraph Content
+        F1[Scenes]
+        F2[Prefabs]
+        F3[Assets]
+    end
+```
 
-Key Components:
+## 🎯 Core Principles
 
-    GameInitializer: Main boot controller
+### 1. **Dependency Inversion**
+- High-level modules don't depend on low-level implementations
+- All dependencies flow through interfaces
+- Service Locator provides abstraction layer
 
-    ServiceContainer: Dependency injection
+### 2. **Event-Driven Communication**
+- Systems communicate through events, not direct calls
+- Loose coupling between components
+- Easy to extend and modify behavior
 
-    ServiceLocator: Global service access
+### 3. **Data-Driven Design**
+- Configuration through ScriptableObjects
+- Easy balancing and tuning without code changes
+- Designer-friendly workflow
 
-Implementation:
-csharp
+### 4. **Separation of Concerns**
+- Clear boundaries between systems
+- Single responsibility for each component
+- Testable, maintainable code
 
+## 🔧 Core Framework
+
+### 1. Boot Sequence
+
+**Purpose**: Initialize core systems in controlled order
+
+**Flow**:
+```mermaid
+sequenceDiagram
+    participant U as Unity Awake
+    participant GI as GameInitializer
+    participant SC as ServiceContainer
+    participant SL as ServiceLocator
+    participant SS as SceneService
+    
+    U->>GI: Awake()
+    GI->>SC: Create Container
+    GI->>SC: Register Services
+    GI->>SL: Initialize(container)
+    GI->>SS: LoadSceneAsync()
+    SS->>GI: Scene Loaded
+    GI->>All: Game Ready
+```
+
+**Key Components**:
+- `GameInitializer`: Main boot controller
+- `ServiceContainer`: Dependency injection
+- `ServiceLocator`: Global service access
+
+**Implementation**:
+```csharp
 public class GameInitializer : MonoBehaviour
 {
     private void Awake()
@@ -97,26 +121,38 @@ public class GameInitializer : MonoBehaviour
         StartCoroutine(LoadFirstSceneAsync());
     }
 }
+```
 
-2. Service Locator Pattern
+### 2. Service Locator Pattern
 
-Purpose: Provide global access to core systems without tight coupling
+**Purpose**: Provide global access to core systems without tight coupling
 
-Architecture:
-text
+**Architecture**:
+```mermaid
+graph LR
+    A[Game Systems] --> B[ServiceLocator]
+    B --> C[ServiceContainer]
+    C --> D[Dictionary<br/>Type->Service]
+    
+    subgraph Game Systems
+        A1[Player]
+        A2[UI]
+        A3[Audio]
+    end
+    
+    subgraph ServiceLocator
+        B1[Resolve&lt;T&gt;]
+        B2[IsRegistered]
+    end
+    
+    subgraph ServiceContainer
+        C1[Register&lt;T&gt;]
+        C2[Resolve&lt;T&gt;]
+    end
+```
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Game Systems  │    │  ServiceLocator  │    │  ServiceContainer │
-│                 │    │                  │    │                  │
-│ - Player        │───►│   Static Access  │───►│  Dictionary     │
-│ - UI            │    │                  │    │   Type->Service  │
-│ - Audio         │    │ - Resolve<T>()   │    │ - Register<T>()  │
-└─────────────────┘    │ - IsRegistered() │    │ - Resolve<T>()   │
-                       └──────────────────┘    └──────────────────┘
-
-Usage:
-csharp
-
+**Usage**:
+```csharp
 // Any system can access services
 var eventBus = ServiceLocator.Resolve<IEventBus>();
 var inputService = ServiceLocator.Resolve<IInputService>();
@@ -126,37 +162,40 @@ if (ServiceLocator.IsRegistered<ISceneService>())
 {
     var sceneService = ServiceLocator.Resolve<ISceneService>();
 }
+```
 
-3. Event Bus System
+### 3. Event Bus System
 
-Purpose: Decoupled communication between systems
+**Purpose**: Decoupled communication between systems
 
-Pattern: Publish-Subscribe
+**Pattern**: Publish-Subscribe
 
-Implementation:
-csharp
-
+**Implementation**:
+```csharp
 public interface IEventBus
 {
     void Subscribe<T>(Action<T> callback) where T : class;
     void Unsubscribe<T>(Action<T> callback) where T : class;
     void Publish<T>(T eventData) where T : class;
 }
+```
 
-Event Flow:
-text
+**Event Flow**:
+```mermaid
+sequenceDiagram
+    participant P as Publisher
+    participant EB as Event Bus
+    participant S1 as Subscriber 1
+    participant S2 as Subscriber 2
+    
+    P->>EB: Publish(Event)
+    EB->>S1: Notify(Event)
+    EB->>S2: Notify(Event)
+    Note over EB: Fan-out to all subscribers
+```
 
-┌─────────────┐    Publish    ┌─────────────┐    Notify    ┌─────────────┐
-│  Publisher  │──────────────►│  Event Bus  │─────────────►│ Subscriber  │
-│             │               │             │              │             │
-│ - Player    │               │ - Routing   │              │ - UI        │
-│ - Weapons   │               │ - Delivery  │              │ - Audio     │
-│ - GameState │               │ - Logging   │              │ - Analytics │
-└─────────────┘               └─────────────┘              └─────────────┘
-
-Example Event:
-csharp
-
+**Example Event**:
+```csharp
 public class PlayerHealthChangedEvent
 {
     public float CurrentHealth { get; set; }
@@ -175,25 +214,39 @@ _eventBus.Publish(new PlayerHealthChangedEvent
 
 // Subscribing
 _eventBus.Subscribe<PlayerHealthChangedEvent>(OnHealthChanged);
+```
 
-4. Input Abstraction Layer
+### 4. Input Abstraction Layer
 
-Purpose: Abstract Unity's Input System for testability and platform flexibility
+**Purpose**: Abstract Unity's Input System for testability and platform flexibility
 
-Architecture:
-text
+**Architecture**:
+```mermaid
+graph LR
+    A[Unity Input] --> B[Input Service]
+    B --> C[Game Systems]
+    
+    subgraph Unity Input
+        A1[Input Actions]
+        A2[Bindings]
+        A3[Devices]
+    end
+    
+    subgraph Input Service
+        B1[Abstraction]
+        B2[Mapping]
+        B3[Platform Adapt]
+    end
+    
+    subgraph Game Systems
+        C1[Player]
+        C2[Weapons]
+        C3[UI]
+    end
+```
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Unity Input   │    │  Input Service   │    │   Game Systems   │
-│                 │    │                  │    │                 │
-│ - Input Actions │───►│ - Abstraction    │───►│ - Player        │
-│ - Bindings      │    │ - Mapping        │    │ - Weapons       │
-│ - Devices       │    │ - Platform Adapt │    │ - UI            │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-
-Implementation:
-csharp
-
+**Implementation**:
+```csharp
 public interface IInputService
 {
     Vector2 GetVector2(string actionName);
@@ -203,10 +256,10 @@ public interface IInputService
     void EnableInput();
     void DisableInput();
 }
+```
 
-Input Actions (Centralized Constants):
-csharp
-
+**Input Actions** (Centralized Constants):
+```csharp
 public static class InputActions
 {
     public const string Move = "Move";
@@ -216,38 +269,50 @@ public static class InputActions
     public const string Reload = "Reload";
     // ... more actions
 }
+```
 
-🎨 Art Pipeline Architecture
-1. Asset Validation System
+## 🎨 Art Pipeline Architecture
 
-Purpose: Ensure asset quality and consistency
+### 1. Asset Validation System
 
-Architecture:
-text
+**Purpose**: Ensure asset quality and consistency
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Asset Import  │    │  AssetValidator  │    │  NamingConventions │
-│                 │    │                  │    │                  │
-│ - OnPostprocess │───►│ - Rule Checking  │───►│ - Prefix Rules  │
-│ - Manual Trigger│    │ - Auto-Fix       │    │ - Folder Rules  │
-│ - CI Integration│    │ - Reporting      │    │ - Size Limits   │
-└─────────────────┘    └──────────────────┘    └──────────────────┘
+**Architecture**:
+```mermaid
+graph TD
+    A[Asset Import] --> B[AssetValidator]
+    B --> C[NamingConventions]
+    B --> D[Import Presets]
+    B --> E[Validation Rules]
+    
+    subgraph Asset Import
+        A1[OnPostprocess]
+        A2[Manual Trigger]
+        A3[CI Integration]
+    end
+    
+    subgraph AssetValidator
+        B1[Rule Checking]
+        B2[Auto-Fix]
+        B3[Reporting]
+    end
+    
+    subgraph NamingConventions
+        C1[Prefix Rules]
+        C2[Folder Rules]
+        C3[Size Limits]
+    end
+```
 
-Validation Rules:
+**Validation Rules**:
+- Naming conventions (prefixes, suffixes)
+- Folder structure compliance
+- File size limits
+- Import settings optimization
+- Reference integrity
 
-    Naming conventions (prefixes, suffixes)
-
-    Folder structure compliance
-
-    File size limits
-
-    Import settings optimization
-
-    Reference integrity
-
-Auto-Fix Pipeline:
-csharp
-
+**Auto-Fix Pipeline**:
+```csharp
 public class AssetImportValidator : AssetPostprocessor
 {
     static void OnPostprocessAllAssets(string[] importedAssets)
@@ -262,25 +327,40 @@ public class AssetImportValidator : AssetPostprocessor
         }
     }
 }
+```
 
-2. LOD Generation System
+### 2. LOD Generation System
 
-Purpose: Automated Level of Detail optimization
+**Purpose**: Automated Level of Detail optimization
 
-Architecture:
-text
+**Architecture**:
+```mermaid
+graph LR
+    A[Mesh Assets] --> B[LODGenerator]
+    B --> C[LODSettings]
+    B --> D[Optimized Meshes]
+    
+    subgraph Mesh Assets
+        A1[FBX Files]
+        A2[Prefabs]
+        A3[Scene Objects]
+    end
+    
+    subgraph LODGenerator
+        B1[Simplification]
+        B2[LOD Group]
+        B3[Optimization]
+    end
+    
+    subgraph LODSettings
+        C1[Profiles]
+        C2[Thresholds]
+        C3[Platform Settings]
+    end
+```
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Mesh Assets   │    │   LODGenerator   │    │   LODSettings   │
-│                 │    │                  │    │                 │
-│ - FBX Files     │───►│ - Simplification │───►│ - Profiles      │
-│ - Prefabs       │    │ - LOD Group      │    │ - Thresholds    │
-│ - Scene Objects │    │ - Optimization   │    │ - Platform      │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-
-Configuration:
-csharp
-
+**Configuration**:
+```csharp
 [CreateAssetMenu(menuName = "Art Pipeline/LOD Settings")]
 public class LODSettings : ScriptableObject
 {
@@ -293,14 +373,14 @@ public class LODSettings : ScriptableObject
     public bool preserveUVs;
     public float maximumSimplificationError;
 }
+```
 
-3. Addressables Management
+### 3. Addressables Management
 
-Purpose: Dynamic content loading and memory management
+**Purpose**: Dynamic content loading and memory management
 
-Group Strategy:
-text
-
+**Group Strategy**:
+```
 Addressables/
 ├── Characters/           # Player, enemies, NPCs
 ├── Weapons/             # All weapon types
@@ -311,10 +391,10 @@ Addressables/
 ├── Audio_SFX_Weapons/   # Weapon sounds
 ├── Audio_SFX_Characters/# Character sounds
 └── Shared/              # Common materials, shaders
+```
 
-Loading Pattern:
-csharp
-
+**Loading Pattern**:
+```csharp
 public class AssetLoader : MonoBehaviour
 {
     public async Task<GameObject> LoadWeaponAsync(string weaponName)
@@ -330,26 +410,41 @@ public class AssetLoader : MonoBehaviour
         return null;
     }
 }
+```
 
-📊 Data Management
-1. Configuration System
+## 📊 Data Management
 
-Purpose: Data-driven game design and balancing
+### 1. Configuration System
 
-Architecture:
-text
+**Purpose**: Data-driven game design and balancing
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│  ScriptableObj  │    │   Resources      │    │   Game Systems   │
-│                 │    │                  │    │                 │
-│ - WeaponConfig  │───►│ - Load at Runtime│───►│ - WeaponSystem  │
-│ - EnemyConfig   │    │ - Editor Editing │    │ - SpawnSystem   │
-│ - GameConfig    │    │ - Version Control│    │ - BalanceSystem │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+**Architecture**:
+```mermaid
+graph LR
+    A[ScriptableObject] --> B[Resources]
+    B --> C[Game Systems]
+    
+    subgraph ScriptableObject
+        A1[WeaponConfig]
+        A2[EnemyConfig]
+        A3[GameConfig]
+    end
+    
+    subgraph Resources
+        B1[Load at Runtime]
+        B2[Editor Editing]
+        B3[Version Control]
+    end
+    
+    subgraph Game Systems
+        C1[WeaponSystem]
+        C2[SpawnSystem]
+        C3[BalanceSystem]
+    end
+```
 
-Example Configuration:
-csharp
-
+**Example Configuration**:
+```csharp
 [CreateAssetMenu(menuName = "Configs/Weapon Config")]
 public class WeaponConfig : ScriptableObject
 {
@@ -370,14 +465,14 @@ public class WeaponConfig : ScriptableObject
     public AudioClip ShootSound;
     public AudioClip ReloadSound;
 }
+```
 
-2. Save System Architecture
+### 2. Save System Architecture
 
-Purpose: Persistent game state management
+**Purpose**: Persistent game state management
 
-Layers:
-csharp
-
+**Layers**:
+```csharp
 public interface ISaveSystem
 {
     Task SaveGameAsync(GameState gameState);
@@ -391,13 +486,14 @@ public class GameState
     public WorldState World { get; set; }
     public SettingsState Settings { get; set; }
 }
+```
 
-🎮 Game Systems Architecture
-1. Player System
+## 🎮 Game Systems Architecture
 
-Components:
-csharp
+### 1. Player System
 
+**Components**:
+```csharp
 public class PlayerController : MonoBehaviour
 {
     private IInputService _input;
@@ -428,34 +524,61 @@ public class HealthSystem : MonoBehaviour
         });
     }
 }
+```
 
-2. Weapon System
+### 2. Weapon System
 
-Architecture:
-text
+**Architecture**:
+```mermaid
+graph TD
+    A[Input] --> B[WeaponManager]
+    B --> C[Weapon]
+    A --> D[Event Bus]
+    B --> E[Config]
+    C --> F[Audio]
+    
+    subgraph Input
+        A1[Fire Input]
+        A2[Reload Input]
+        A3[Aim Input]
+    end
+    
+    subgraph WeaponManager
+        B1[Weapon Switching]
+        B2[Ammo Management]
+        B3[State Machine]
+    end
+    
+    subgraph Weapon
+        C1[Shooting]
+        C2[Reloading]
+        C3[Recoil]
+    end
+    
+    subgraph Event Bus
+        D1[WeaponFired]
+        D2[WeaponSwitched]
+        D3[AmmoChanged]
+    end
+    
+    subgraph Config
+        E1[WeaponConfig]
+        E2[Balance Data]
+        E3[Stats]
+    end
+    
+    subgraph Audio
+        F1[Shoot Sounds]
+        F2[Reload Sounds]
+        F3[Empty Sounds]
+    end
+```
 
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Input         │    │   WeaponManager  │    │   Weapon        │
-│                 │    │                  │    │                 │
-│ - Fire Input    │───►│ - Weapon Switching│───►│ - Shooting      │
-│ - Reload Input  │    │ - Ammo Management│    │ - Reloading     │
-│ - Aim Input     │    │ - State Machine  │    │ - Recoil        │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
-         │                        │                        │
-         ▼                        ▼                        ▼
-┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   Event Bus     │    │   Config         │    │   Audio         │
-│                 │    │                  │    │                 │
-│ - WeaponFired   │    │ - WeaponConfig   │    │ - Shoot Sounds  │
-│ - WeaponSwitched│    │ - Balance Data   │    │ - Reload Sounds │
-│ - AmmoChanged   │    │ - Stats          │    │ - Empty Sounds  │
-└─────────────────┘    └──────────────────┘    └─────────────────┘
+### 3. Enemy AI System
 
-3. Enemy AI System
+**Pattern**: Behavior Tree + State Machine
 
-Pattern: Behavior Tree + State Machine
-csharp
-
+```csharp
 public class EnemyAI : MonoBehaviour
 {
     private BehaviorTree _behaviorTree;
@@ -483,13 +606,14 @@ public class ChaseState : EnemyState
         // Chase logic using pathfinding
     }
 }
+```
 
-🔌 Integration Patterns
-1. System Initialization
+## 🔌 Integration Patterns
 
-Boot Sequence:
-csharp
+### 1. System Initialization
 
+**Boot Sequence**:
+```csharp
 public class GameInitializer : MonoBehaviour
 {
     private async void Awake()
@@ -507,12 +631,13 @@ public class GameInitializer : MonoBehaviour
         _eventBus.Publish(new GameReadyEvent());
     }
 }
+```
 
-2. Scene Management
+### 2. Scene Management
 
-Pattern: Asynchronous scene loading with progress tracking
-csharp
+**Pattern**: Asynchronous scene loading with progress tracking
 
+```csharp
 public class SceneService : ISceneService
 {
     public async Task<SceneLoadResult> LoadSceneAsync(string sceneName, 
@@ -529,12 +654,13 @@ public class SceneService : ISceneService
         return new SceneLoadResult { Success = true };
     }
 }
+```
 
-3. Error Handling & Recovery
+### 3. Error Handling & Recovery
 
-Pattern: Graceful degradation with fallbacks
-csharp
+**Pattern**: Graceful degradation with fallbacks
 
+```csharp
 public class WeaponSystem : MonoBehaviour
 {
     public async Task<bool> EquipWeapon(string weaponId)
@@ -558,25 +684,23 @@ public class WeaponSystem : MonoBehaviour
         }
     }
 }
+```
 
-🚀 Performance Architecture
-1. Memory Management
+## 🚀 Performance Architecture
 
-Patterns:
+### 1. Memory Management
 
-    Object pooling for frequently instantiated objects
+**Patterns**:
+- Object pooling for frequently instantiated objects
+- Addressables for dynamic loading/unloading
+- LOD systems for geometry optimization
+- Texture streaming and mipmapping
 
-    Addressables for dynamic loading/unloading
+### 2. Update Optimization
 
-    LOD systems for geometry optimization
+**Pattern**: Phased updates with priority system
 
-    Texture streaming and mipmapping
-
-2. Update Optimization
-
-Pattern: Phased updates with priority system
-csharp
-
+```csharp
 public class UpdateManager : MonoBehaviour
 {
     private List<IUpdateable> _highPriority = new();
@@ -598,12 +722,13 @@ public class UpdateManager : MonoBehaviour
             system.OnUpdate(Time.deltaTime);
     }
 }
+```
 
-3. Asset Streaming
+### 3. Asset Streaming
 
-Strategy: Predictive loading based on player position and progression
-csharp
+**Strategy**: Predictive loading based on player position and progression
 
+```csharp
 public class StreamingController : MonoBehaviour
 {
     public async Task PreloadLevelAssets(string levelName)
@@ -618,13 +743,15 @@ public class StreamingController : MonoBehaviour
         await Addressables.CleanBundleCache();
     }
 }
+```
 
-🔍 Testing Architecture
-1. Unit Testing
+## 🔍 Testing Architecture
 
-Pattern: Mock services for isolated testing
-csharp
+### 1. Unit Testing
 
+**Pattern**: Mock services for isolated testing
+
+```csharp
 [TestFixture]
 public class WeaponSystemTests
 {
@@ -654,12 +781,13 @@ public class WeaponSystemTests
         Assert.AreEqual(29, _weaponSystem.CurrentAmmo);
     }
 }
+```
 
-2. Integration Testing
+### 2. Integration Testing
 
-Pattern: In-editor testing with scene setup
-csharp
+**Pattern**: In-editor testing with scene setup
 
+```csharp
 [UnityTest]
 public IEnumerator Player_Takes_Damage_From_Enemy()
 {
@@ -676,19 +804,25 @@ public IEnumerator Player_Takes_Damage_From_Enemy()
     // Assert
     Assert.Less(player.Health.CurrentHealth, initialHealth);
 }
+```
 
-🔄 Development Workflow
-1. Feature Development Process
-text
+## 🔄 Development Workflow
 
+### 1. Feature Development Process
+```
 1. Design → 2. Implement Core → 3. Create Tests → 4. Integrate → 5. Validate
+```
 
-2. Asset Pipeline
-text
-
+### 2. Asset Pipeline
+```
 Artist Creates → Auto-Validation → Addressables Build → Runtime Loading
+```
 
-3. CI/CD Pipeline
-text
-
+### 3. CI/CD Pipeline
+```
 Code Commit → Asset Validation → Unit Tests → Build → Deploy
+```
+
+---
+
+*Last Updated: 2025.10.11*
