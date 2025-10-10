@@ -108,7 +108,7 @@ Run validation manually: `Tools > Art Pipeline > Validate All Assets`
 ## 📚 Documentation
 
 ### Naming Conventions
-- Complete guide: `Assets/Documentation/NamingConventions.md`
+- Complete guide: `Assets/Scripts/ArtPipeline/Documentation/NamingConventions.md`
 - Generate updated docs: `Tools > Art Pipeline > Generate Naming Documentation`
 - Open documentation: `Tools > Art Pipeline > Open Naming Documentation`
 
