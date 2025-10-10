@@ -104,3 +104,17 @@ Assets will be automatically validated on import:
 - ❌ No missing references
 
 Run validation manually: `Tools > Art Pipeline > Validate All Assets`
+
+## 📚 Documentation
+
+### Naming Conventions
+- Complete guide: `Assets/Documentation/NamingConventions.md`
+- Generate updated docs: `Tools > Art Pipeline > Generate Naming Documentation`
+- Open documentation: `Tools > Art Pipeline > Open Naming Documentation`
+
+### Rule Updates
+When adding new asset types or changing conventions:
+1. Update `NamingConventions.cs` 
+2. Run documentation generator
+3. Verify validation still passes
+4. Update this README if needed
