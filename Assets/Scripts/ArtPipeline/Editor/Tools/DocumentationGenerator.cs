@@ -13,7 +13,7 @@ namespace ArtPipeline.Editor.Tools
         [MenuItem("Tools/Art Pipeline/Generate Naming Documentation")]
         public static void GenerateNamingDocumentation()
         {
-            string docsPath = "Assets/ArtPipeline/Documentation";
+            string docsPath = "Assets/Scripts/ArtPipeline/Documentation";
 
             if (!Directory.Exists(docsPath))
             {
@@ -33,7 +33,7 @@ namespace ArtPipeline.Editor.Tools
 
         private static void UpdateMainDocumentation()
         {
-            string mainDocPath = "Assets/ArtPipeline/Documentation/NamingConventions.md";
+            string mainDocPath = "Assets/Scripts/ArtPipeline/Documentation/NamingConventions.md";
             if (File.Exists(mainDocPath))
             {
                 _ = File.ReadAllText(mainDocPath);
