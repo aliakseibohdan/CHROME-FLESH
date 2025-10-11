@@ -63,9 +63,9 @@ This document defines the standardized naming conventions for all assets in the 
 
 ### Variant Naming
 
-SM_Prop_Crate_01_Wood.fbx
-SM_Prop_Crate_01_Metal.fbx
-SM_Prop_Crate_01_Damaged.fbx
+- SM_Prop_Crate_01_Wood.fbx
+- SM_Prop_Crate_01_Metal.fbx
+- SM_Prop_Crate_01_Damaged.fbx
 
 ## 🔊 Audio Naming
 
