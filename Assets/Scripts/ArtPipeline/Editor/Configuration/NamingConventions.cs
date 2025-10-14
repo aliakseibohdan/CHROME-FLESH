@@ -37,6 +37,9 @@ namespace ArtPipeline.Editor.Configuration
             
             // Animation prefixes
             { "A_", new[] { "Art/Characters/", "Art/Weapons/" } },
+
+            // Animator Controllers prefixes
+            { "AC_", new[] { "Art/Characters/", "Art/Weapons/", "Art/Environment/" } },
             
             // Font prefixes
             { "F_", new[] { "Art/UI/Fonts/" } },

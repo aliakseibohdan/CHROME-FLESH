@@ -1,8 +1,9 @@
-﻿using UnityEngine;
-using UnityEditor;
+﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEngine;
 
 namespace ArtPipeline.Editor
 {
@@ -11,43 +12,72 @@ namespace ArtPipeline.Editor
     /// </summary>
     public class AssetImportValidator : AssetPostprocessor
     {
+        private static readonly HashSet<string> _processedAssetsInThisBatch = new();
+        private static bool _isProcessingBatch = false;
+
         private static void OnPostprocessAllAssets(string[] importedAssets, string[] deletedAssets, string[] movedAssets, string[] movedFromAssetPaths)
         {
-            bool hasValidationErrors = false;
-            List<string> failedAssets = new();
-
-            foreach (string assetPath in importedAssets)
+            if (_isProcessingBatch)
             {
-                if (!AssetValidator.IsArtAsset(assetPath))
-                {
-                    continue;
-                }
-
-                var result = AssetValidator.ValidateAsset(assetPath);
-
-                if (!result.IsValid)
-                {
-                    Debug.LogError($"❌ Import Validation Failed for {assetPath}:\n{result}");
-                    hasValidationErrors = true;
-                    failedAssets.Add(Path.GetFileName(assetPath));
-
-                    TryAutoFixAsset(assetPath, result);
-                }
-                else if (result.Warnings.Count > 0 || result.Suggestions.Count > 0)
-                {
-                    Debug.LogWarning($"⚠ Import Validation Warnings for {assetPath}:\n{result}");
-                }
+                return;
             }
 
-            if (hasValidationErrors && !Application.isBatchMode)
+            _isProcessingBatch = true;
+            _processedAssetsInThisBatch.Clear();
+
+            try
             {
-                string message = $"Validation failed for {failedAssets.Count} assets:\n{string.Join("\n", failedAssets.Take(5))}";
-                if (failedAssets.Count > 5)
+                bool hasValidationErrors = false;
+                List<string> failedAssets = new();
+
+                foreach (string assetPath in importedAssets)
                 {
-                    message += $"\n... and {failedAssets.Count - 5} more";
+                    if (_processedAssetsInThisBatch.Contains(assetPath))
+                    {
+                        continue;
+                    }
+
+                    if (!IsArtAsset(assetPath))
+                    {
+                        continue;
+                    }
+
+                    _ = _processedAssetsInThisBatch.Add(assetPath);
+
+                    var result = AssetValidator.ValidateAsset(assetPath);
+
+                    if (!result.IsValid)
+                    {
+                        Debug.LogError($"❌ Import Validation Failed for {assetPath}:\n{result}");
+                        hasValidationErrors = true;
+                        failedAssets.Add(Path.GetFileName(assetPath));
+
+                        TryAutoFixAsset(assetPath, result);
+                    }
+                    else if (result.Warnings.Count > 0 || result.Suggestions.Count > 0)
+                    {
+                        Debug.LogWarning($"⚠ Import Validation Warnings for {assetPath}:\n{result}");
+                    }
                 }
 
-                _ = EditorUtility.DisplayDialog("Import Validation Failed", message, "OK");
+                if (hasValidationErrors && !Application.isBatchMode && failedAssets.Count > 0)
+                {
+                    // Use delay call to avoid showing dialog during asset import
+                    EditorApplication.delayCall += () =>
+                    {
+                        string message = $"Validation failed for {failedAssets.Count} assets:\n{string.Join("\n", failedAssets.Take(5))}";
+                        if (failedAssets.Count > 5)
+                        {
+                            message += $"\n... and {failedAssets.Count - 5} more";
+                        }
+
+                        _ = EditorUtility.DisplayDialog("Import Validation Failed", message, "OK");
+                    };
+                }
+            }
+            finally
+            {
+                _isProcessingBatch = false;
             }
         }
 
@@ -55,12 +85,12 @@ namespace ArtPipeline.Editor
         {
             if (string.IsNullOrEmpty(assetPath))
             {
-                throw new System.ArgumentException($"'{nameof(assetPath)}' cannot be null or empty.", nameof(assetPath));
+                throw new ArgumentException($"'{nameof(assetPath)}' cannot be null or empty.", nameof(assetPath));
             }
 
             if (result is null)
             {
-                throw new System.ArgumentNullException(nameof(result));
+                throw new ArgumentNullException(nameof(result));
             }
 
             AssetImporter importer = AssetImporter.GetAtPath(assetPath);
@@ -73,41 +103,62 @@ namespace ArtPipeline.Editor
 
             if (importer is TextureImporter textureImporter)
             {
-                if (assetPath.ToLower().Contains("_normal"))
+                if (assetPath.ToLower().Contains("_normal") && textureImporter.textureType != TextureImporterType.NormalMap)
                 {
                     AssetImportPresets.ApplyNormalMapSettings(textureImporter);
                     shouldReimport = true;
-                }
-                else
-                {
-                    AssetImportPresets.ApplyTextureSettings(textureImporter);
-                    shouldReimport = true;
+                    Debug.Log($"🛠️ Auto-fixed normal map settings for: {Path.GetFileName(assetPath)}");
                 }
             }
             else if (importer is AudioImporter audioImporter)
             {
-                if (assetPath.Contains("/SFX/"))
+                var settings = audioImporter.defaultSampleSettings;
+                bool needsFix = false;
+
+                if (assetPath.Contains("/SFX/") && settings.loadType != AudioClipLoadType.CompressedInMemory)
                 {
                     AssetImportPresets.ApplySFXSettings(audioImporter);
-                    shouldReimport = true;
+                    needsFix = true;
                 }
-                else if (assetPath.Contains("/Music/"))
+                else if (assetPath.Contains("/Music/") && settings.loadType != AudioClipLoadType.Streaming)
                 {
                     AssetImportPresets.ApplyMusicSettings(audioImporter);
-                    shouldReimport = true;
+                    needsFix = true;
                 }
-                else if (assetPath.Contains("/Voice/"))
+                else if (assetPath.Contains("/Voice/") && settings.loadType == AudioClipLoadType.Streaming)
                 {
                     AssetImportPresets.ApplyVoiceSettings(audioImporter);
+                    needsFix = true;
+                }
+
+                if (needsFix)
+                {
                     shouldReimport = true;
+                    Debug.Log($"🛠️ Auto-fixed audio settings for: {Path.GetFileName(assetPath)}");
                 }
             }
 
             if (shouldReimport)
             {
+                _ = _processedAssetsInThisBatch.Add(assetPath);
+
+                // Save and reimport - this will trigger OnPostprocessAllAssets again
+                // but _isProcessingBatch and _processedAssetsInThisBatch will prevent loops
                 importer.SaveAndReimport();
-                Debug.Log($"🛠️ Auto-fixed import settings for: {Path.GetFileName(assetPath)}");
             }
         }
+
+        private static bool IsArtAsset(string assetPath) =>
+                   assetPath.Contains("/Art/") ||
+                   assetPath.Contains("/Audio/") ||
+                   assetPath.Contains("/Materials/") ||
+                   assetPath.Contains("/Prefabs/") ||
+                   assetPath.EndsWith(".fbx") ||
+                   assetPath.EndsWith(".png") ||
+                   assetPath.EndsWith(".jpg") ||
+                   assetPath.EndsWith(".tga") ||
+                   assetPath.EndsWith(".wav") ||
+                   assetPath.EndsWith(".mp3") ||
+                   assetPath.EndsWith(".controller");
     }
 }
