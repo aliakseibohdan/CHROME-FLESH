@@ -15,6 +15,9 @@ namespace ArtPipeline.Editor
         [MenuItem("Tools/Art Pipeline/Validate Selected Assets", false, 2)]
         private static void ValidateSelectedAssets() => AssetValidator.ValidateSelectedAssets();
 
+        [MenuItem("Assets/Validate Asset", false, 20)]
+        private static void ValidateAssetFromContext() => AssetValidator.ValidateAssetFromContext();
+
         [MenuItem("Tools/Art Pipeline/Generate LODs for Selected", false, 20)]
         private static void GenerateLODs() => LODGenerator.GenerateLODsForSelected();
 
@@ -49,39 +52,5 @@ namespace ArtPipeline.Editor
                 _ = EditorUtility.DisplayDialog("README", "Artists_README.md not found in ArtPipeline/Documentation folder", "OK");
             }
         }
-
-        [MenuItem("Assets/Validate Asset", false, 20)]
-        private static void ValidateAssetFromContext()
-        {
-            var selected = Selection.activeObject;
-            if (selected == null)
-            {
-                return;
-            }
-
-            string path = AssetDatabase.GetAssetPath(selected);
-            var result = AssetValidator.ValidateAsset(path);
-
-            if (result.IsValid)
-            {
-                if (result.Warnings.Count > 0 || result.Suggestions.Count > 0)
-                {
-                    _ = EditorUtility.DisplayDialog("Asset Validation",
-                        $"✅ Validation passed with notes:\n{result}", "OK");
-                }
-                else
-                {
-                    _ = EditorUtility.DisplayDialog("Asset Validation", "✅ Validation passed!", "OK");
-                }
-            }
-            else
-            {
-                _ = EditorUtility.DisplayDialog("Asset Validation",
-                    $"❌ Validation failed:\n{result}", "OK");
-            }
-        }
-
-        [MenuItem("Assets/Validate Asset", true)]
-        private static bool ValidateAssetFromContextValidate() => Selection.activeObject != null;
     }
 }

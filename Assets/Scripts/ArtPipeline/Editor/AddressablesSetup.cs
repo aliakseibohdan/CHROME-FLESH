@@ -11,7 +11,6 @@ namespace ArtPipeline.Editor
     /// </summary>
     public static class AddressablesSetup
     {
-        [MenuItem("Tools/Art Pipeline/Setup Addressables Groups")]
         public static void SetupAddressablesGroups()
         {
             var settings = AddressableAssetSettingsDefaultObject.Settings;
@@ -40,7 +39,6 @@ namespace ArtPipeline.Editor
             }
         }
 
-        [MenuItem("Tools/Art Pipeline/Mark Selected as Addressable")]
         public static void MarkSelectedAsAddressable()
         {
             var selected = Selection.objects;

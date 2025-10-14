@@ -13,7 +13,6 @@ namespace ArtPipeline.Editor
         private static readonly float[] _lodPercentages = { 1.0f, 0.5f, 0.25f, 0.1f }; // LOD0 to LOD3
         private static readonly float[] _lodScreenRelativeHeights = { 0.6f, 0.3f, 0.15f, 0.05f };
 
-        [MenuItem("Tools/Art Pipeline/Generate LODs for Selected", false, 20)]
         public static void GenerateLODsForSelected()
         {
             var selected = Selection.activeGameObject;
@@ -32,7 +31,6 @@ namespace ArtPipeline.Editor
             GenerateLODs(selected);
         }
 
-        [MenuItem("Tools/Art Pipeline/Generate LODs for All in Folder", false, 21)]
         public static void GenerateLODsForFolder()
         {
             var selectedFolder = Selection.activeObject;
@@ -389,7 +387,6 @@ namespace ArtPipeline.Editor
             return 4;        // Complex - 4 LODs
         }
 
-        [MenuItem("Tools/Art Pipeline/Analyze Mesh Complexity", false, 22)]
         public static void AnalyzeSelectedMesh()
         {
             var selected = Selection.activeGameObject;

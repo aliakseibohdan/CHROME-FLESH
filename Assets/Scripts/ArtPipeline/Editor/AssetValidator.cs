@@ -11,7 +11,6 @@ namespace ArtPipeline.Editor
     /// </summary>
     public static class AssetValidator
     {
-        [MenuItem("Tools/Art Pipeline/Validate All Assets", false, 1)]
         public static void ValidateAllAssets()
         {
             string[] allAssets = AssetDatabase.FindAssets("")
@@ -114,7 +113,6 @@ namespace ArtPipeline.Editor
             }
         }
 
-        [MenuItem("Tools/Art Pipeline/Validate Selected Assets", false, 2)]
         public static void ValidateSelectedAssets()
         {
             var selectedObjects = Selection.objects;
@@ -170,7 +168,6 @@ namespace ArtPipeline.Editor
             }
         }
 
-        [MenuItem("Assets/Validate Asset", false, 20)]
         public static void ValidateAssetFromContext()
         {
             var selected = Selection.activeObject;

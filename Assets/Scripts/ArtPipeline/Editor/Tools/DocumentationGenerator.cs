@@ -10,7 +10,6 @@ namespace ArtPipeline.Editor.Tools
     /// </summary>
     public static class DocumentationGenerator
     {
-        [MenuItem("Tools/Art Pipeline/Generate Naming Documentation")]
         public static void GenerateNamingDocumentation()
         {
             string docsPath = "Assets/Scripts/ArtPipeline/Documentation";
@@ -50,7 +49,6 @@ namespace ArtPipeline.Editor.Tools
 
         private static string GetFullDocumentationContent() => NamingConventions.GenerateMarkdownDocumentation();
 
-        [MenuItem("Tools/Art Pipeline/Open Naming Documentation")]
         public static void OpenNamingDocumentation()
         {
             string docPath = "Assets/ArtPipeline/Documentation/NamingConventions.md";
