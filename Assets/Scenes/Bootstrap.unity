@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3d0fb6f161309f44b3dcd055eea5d19, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Core.Boot.GameInitializer
-  _firstSceneName: MainMenu
+  _firstSceneName: ArtPipelineTest
   _verboseLogging: 1
 --- !u!4 &727593607
 Transform:
