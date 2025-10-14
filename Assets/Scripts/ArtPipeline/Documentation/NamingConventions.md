@@ -196,4 +196,4 @@ PFV_[Category][AssetName][Variant].prefab
 - Addressables build requires validation pass
 
 ---
-*Last Updated: 2025.10.11*
+*Last Updated: 2025.10.14*
