@@ -24,6 +24,7 @@ This document defines the standardized naming conventions for all assets in the 
 | **Audio Music** | `AUD_MUS_` | `AUD_MUS_MainTheme.wav` |
 | **Audio Voice** | `AUD_VOX_` | `AUD_VOX_Hero_Line01.wav` |
 | **Animations** | `A_` | `A_Character_Walk.anim` |
+| **Animation Controllers** | `AC_` | `AC_Character_Hero.controller` |
 | **Fonts** | `F_` | `F_MainUI.asset` |
 | **ScriptableObjects** | `SO_` | `SO_GameConfig.asset` |
 
@@ -63,9 +64,9 @@ This document defines the standardized naming conventions for all assets in the 
 
 ### Variant Naming
 
-- SM_Prop_Crate_01_Wood.fbx
-- SM_Prop_Crate_01_Metal.fbx
-- SM_Prop_Crate_01_Damaged.fbx
+SM_Prop_Crate_01_Wood.fbx\
+SM_Prop_Crate_01_Metal.fbx\
+SM_Prop_Crate_01_Damaged.fbx
 
 ## 🔊 Audio Naming
 
@@ -88,7 +89,8 @@ This document defines the standardized naming conventions for all assets in the 
 
 ### Character Animations
 
-A_[Character][Action][Variant].anim
+A_[Character][Action][Variant].anim\
+AC_[Character].controller
 
 ### Examples
 - `A_Hero_Walk.anim`
@@ -96,6 +98,8 @@ A_[Character][Action][Variant].anim
 - `A_Hero_Shoot_Rifle.anim`
 - `A_Hero_Reload_Rifle.anim`
 - `A_Enemy_Grunt_Walk.anim`
+- `AC_Door.controller`
+- `AC_AssaultRifle.controller`
 
 ### Animation States
 - `Idle`, `Walk`, `Run`, `Jump`, `Crouch`
