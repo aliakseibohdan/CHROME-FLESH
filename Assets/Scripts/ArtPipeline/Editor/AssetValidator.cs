@@ -15,9 +15,10 @@ namespace ArtPipeline.Editor
         {
             string[] allAssets = AssetDatabase.FindAssets("")
                 .Select(guid => AssetDatabase.GUIDToAssetPath(guid))
-                .Where(path => !path.StartsWith("Assets/Plugins") &&
-                              !path.StartsWith("Assets/Editor") &&
-                              !path.StartsWith("Assets/ArtPipeline/Documentation"))
+                .Where(path => !path.StartsWith("Packages") &&
+                               !path.StartsWith("Assets/Plugins") &&
+                               !path.StartsWith("Assets/Editor") &&
+                               !path.StartsWith("Assets/ArtPipeline/Documentation"))
                 .ToArray();
 
             Dictionary<string, ValidationResult> results = new();
