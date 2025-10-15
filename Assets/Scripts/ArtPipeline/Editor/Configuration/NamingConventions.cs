@@ -25,6 +25,11 @@ namespace ArtPipeline.Editor.Configuration
             // Material prefixes
             { "M_", new[] { "Materials/" } },
             { "M_Master_", new[] { "Materials/Masters/" } },
+
+            // Shader prefixes
+            { "SH_", new[] { "Art/Shaders/", "Materials/Shaders/" } },
+            { "SHG_", new[] { "Art/Shaders/Graph/", "Materials/Shaders/Graph/" } },
+            { "SHV_", new[] { "Art/Shaders/Variants/", "Materials/Shaders/Variants/" } },
             
             // Prefab prefixes
             { "PF_", new[] { "Prefabs/", "Art/" } },

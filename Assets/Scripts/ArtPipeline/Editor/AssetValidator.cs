@@ -695,6 +695,7 @@ namespace ArtPipeline.Editor
                    assetPath.Contains("/Prefabs/") ||
                    IsTextureFile(assetPath) ||
                    IsModelFile(assetPath) ||
+                   IsShaderFile(assetPath) ||
                    IsAudioFile(assetPath);
 
         private static bool IsTextureFile(string assetPath)
@@ -707,6 +708,12 @@ namespace ArtPipeline.Editor
         {
             string ext = Path.GetExtension(assetPath).ToLower();
             return ext is ".fbx" or ".obj" or ".blend" or ".max" or ".ma" or ".mb";
+        }
+
+        private static bool IsShaderFile(string assetPath)
+        {
+            string ext = Path.GetExtension(assetPath).ToLower();
+            return ext is ".shader" or ".shadergraph" or ".rayshader";
         }
 
         private static bool IsAudioFile(string assetPath)
@@ -733,9 +740,25 @@ namespace ArtPipeline.Editor
 
                 return "SM_";
             }
+
             if (assetPath.Contains("/Materials/"))
             {
                 return "M_";
+            }
+
+            if (assetPath.Contains("/Shaders/"))
+            {
+                return "SH_";
+            }
+
+            if (assetPath.Contains("/Shaders/Graph/"))
+            {
+                return "SHG_";
+            }
+
+            if (assetPath.Contains("/Shaders/Variants/"))
+            {
+                return "SHV_";
             }
 
             if (assetPath.Contains("/Prefabs/"))
